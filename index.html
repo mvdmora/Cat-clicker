@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Cat Clicker Game</title>
+  <title>Cat and Dog Clicker Game</title>
   <style>
     /* Basic styling for the page */
     body {
@@ -18,31 +18,31 @@
       margin: 20px;
     }
 
-    /* The game area container where the cat will move.
-       This container is positioned relatively so that child elements
-       with absolute positioning (the cat) are positioned relative to it. */
+    /* Container for the game area where the image moves.
+       It is relatively positioned so that the absolutely positioned image
+       is positioned within this container. */
     #gameArea {
       position: relative;
       width: 100%;
-      height: 500px;         /* Adjust the height as needed */
-      border: 1px solid #ccc;/* Optional border so you can see the game area */
+      height: 600px;         /* Adjusted to accommodate a 600px-wide image */
+      border: 1px solid #ccc;
       margin-bottom: 20px;
-      overflow: hidden;      /* Hide any parts of the cat that might go outside */
+      overflow: hidden;      /* Hide parts of the image that might move outside */
     }
 
-    /* Styling for the cat image */
-    #cat {
-      position: absolute;    /* Allow absolute positioning within #gameArea */
-      width: 300px;          /* Fixed width for the cat image */
-      height: auto;          /* Auto-adjust height to preserve aspect ratio */
-      cursor: pointer;       /* Change cursor to indicate the image is clickable */
+    /* Styling for the image that alternates between cat and dog */
+    #animal {
+      position: absolute;    /* Allows movement within the game area */
+      width: 600px;          /* Width of the image */
+      height: auto;          /* Maintain aspect ratio */
+      cursor: pointer;       /* Indicates that the image is clickable */
       border: 5px solid #ccc;
       border-radius: 10px;
-      transition: transform 0.1s; /* Smooth transition for click animation */
+      transition: transform 0.1s; /* For a smooth click animation */
     }
 
-    /* Slight scaling effect when the cat is clicked */
-    #cat:active {
+    /* Slight scaling effect when the image is clicked */
+    #animal:active {
       transform: scale(0.95);
     }
 
@@ -53,54 +53,65 @@
   </style>
 </head>
 <body>
-  <h1>Cat Clicker Game</h1>
-  <p>Click the cat to earn points and watch it move!</p>
+  <h1>Cat and Dog Clicker Game</h1>
+  <p>Click the animal to earn points—it will alternate between a cat and a dog!</p>
   
-  <!-- The container for the cat image -->
+  <!-- The game area container -->
   <div id="gameArea">
-    <!-- The cat image that players click -->
-    <img id="cat" src="https://placekitten.com/300/300" alt="Cute Cat">
+    <!-- The image element that starts as a cat image -->
+    <img id="animal" src="https://placekitten.com/600/600" alt="Cute Cat">
   </div>
   
-  <!-- The element displaying the current score -->
+  <!-- Score display -->
   <div id="score">0</div>
 
   <script>
     // Initialize the score variable to keep track of clicks
     let score = 0;
     
-    // Get references to the cat image, score display, and game area container
-    const cat = document.getElementById('cat');
+    // Get references to the image, score display, and game area container
+    const animal = document.getElementById('animal');
     const scoreDisplay = document.getElementById('score');
     const gameArea = document.getElementById('gameArea');
 
-    // Function to move the cat to a random position within the game area
-    function moveCat() {
-      // Calculate the maximum left and top positions so the cat stays fully visible
-      const maxLeft = gameArea.clientWidth - cat.offsetWidth;
-      const maxTop = gameArea.clientHeight - cat.offsetHeight;
-
-      // Generate random left and top values within the allowed range
+    // Function to move the image to a random position within the game area
+    function moveAnimal() {
+      // Calculate the maximum allowed left and top positions
+      const maxLeft = gameArea.clientWidth - animal.offsetWidth;
+      const maxTop = gameArea.clientHeight - animal.offsetHeight;
+      
+      // Generate random positions within the allowed range
       const randomLeft = Math.random() * maxLeft;
       const randomTop = Math.random() * maxTop;
-
-      // Apply the new positions to the cat image
-      cat.style.left = randomLeft + 'px';
-      cat.style.top = randomTop + 'px';
+      
+      // Set the new positions
+      animal.style.left = randomLeft + 'px';
+      animal.style.top = randomTop + 'px';
     }
 
-    // Add a click event listener to the cat image
-    cat.addEventListener('click', () => {
-      // Increment the score
+    // Add a click event listener to the image
+    animal.addEventListener('click', () => {
+      // Increment the score and update the display
       score++;
-      // Update the score display
       scoreDisplay.textContent = score;
-      // Move the cat image to a new random location
-      moveCat();
+      
+      // Toggle the image source:
+      // - For odd-numbered clicks, change the image to a dog.
+      // - For even-numbered clicks, revert back to a cat.
+      if (score % 2 === 1) {
+        animal.src = "https://placedog.net/600/600";  // Dog image URL
+        animal.alt = "Cute Dog";
+      } else {
+        animal.src = "https://placekitten.com/600/600"; // Cat image URL
+        animal.alt = "Cute Cat";
+      }
+      
+      // Move the image to a new random location
+      moveAnimal();
     });
 
-    // Optionally, move the cat to a random position when the page first loads
-    moveCat();
+    // Optionally, move the animal to a random position when the page loads
+    moveAnimal();
   </script>
 </body>
 </html>
