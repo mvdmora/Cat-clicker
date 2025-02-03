@@ -4,114 +4,271 @@
   <meta charset="UTF-8">
   <title>Cat and Dog Clicker Game</title>
   <style>
-    /* Basic styling for the page */
+    /* Basic page styling */
     body {
       font-family: sans-serif;
       background: #f0f0f0;
       margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    /* Container for common centering and padding */
+    .container {
       padding: 20px;
-      text-align: center; /* Center headings and text */
     }
 
-    /* Style for the main heading */
-    h1 {
-      margin: 20px;
+    /* Start screen and Game Over screen styling */
+    #startScreen, #gameOverScreen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
-    /* Container for the game area where the image moves.
-       It is relatively positioned so that the absolutely positioned image
-       is positioned within this container. */
+    /* Game area styling */
     #gameArea {
       position: relative;
       width: 100%;
-      height: 600px;         /* Adjusted to accommodate a 600px-wide image */
+      height: 350px; /* Adjust height to accommodate the image size */
       border: 1px solid #ccc;
-      margin-bottom: 20px;
-      overflow: hidden;      /* Hide parts of the image that might move outside */
+      margin: 20px auto;
+      background: #fff;
+      overflow: hidden;
+      display: none; /* Hidden until game starts */
     }
 
-    /* Styling for the image that alternates between cat and dog */
+    /* Styling for the animal image (cat/dog) */
     #animal {
-      position: absolute;    /* Allows movement within the game area */
-      width: 600px;          /* Width of the image */
+      position: absolute;    /* Allows moving it around within gameArea */
+      width: 150px;          /* Smaller image size */
       height: auto;          /* Maintain aspect ratio */
-      cursor: pointer;       /* Indicates that the image is clickable */
-      border: 5px solid #ccc;
+      cursor: pointer;       /* Indicates clickable */
+      border: 3px solid #ccc;
       border-radius: 10px;
-      transition: transform 0.1s; /* For a smooth click animation */
+      /* Transition for a fade effect when moving */
+      transition: transform 0.1s, opacity 0.3s;
+      opacity: 0;            /* Initially hidden for fade-in effect */
     }
 
-    /* Slight scaling effect when the image is clicked */
-    #animal:active {
-      transform: scale(0.95);
+    /* Class added to fade in the image */
+    #animal.show {
+      opacity: 1;
     }
 
-    /* Style for the score display */
-    #score {
-      font-size: 2em;
+    /* Score, Timer, and High Score display styling */
+    #scoreBoard {
+      margin: 10px;
+      font-size: 1.5em;
+    }
+
+    /* Button styling */
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-top: 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #007BFF;
+      color: #fff;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h1>Cat and Dog Clicker Game</h1>
-  <p>Click the animal to earn points—it will alternate between a cat and a dog!</p>
-  
-  <!-- The game area container -->
-  <div id="gameArea">
-    <!-- The image element that starts as a cat image -->
-    <img id="animal" src="https://placekitten.com/600/600" alt="Cute Cat">
+  <!-- Start Screen -->
+  <div id="startScreen" class="container">
+    <h1>Cat and Dog Clicker Game</h1>
+    <p>Click the animal to earn points. The image will alternate between a cute cat and a cute dog!</p>
+    <button id="startButton">Start Game</button>
   </div>
-  
-  <!-- Score display -->
-  <div id="score">0</div>
+
+  <!-- Game Area -->
+  <div id="gameArea" class="container">
+    <!-- Score, Timer, and High Score display -->
+    <div id="scoreBoard">
+      <span>Score: <span id="score">0</span></span>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <span>Time: <span id="timer">30</span>s</span>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <span>High Score: <span id="highScore">0</span></span>
+    </div>
+    <!-- The animal image that toggles between cat and dog -->
+    <img id="animal" src="https://loremflickr.com/300/300/cat" alt="Cute Cat">
+    <!-- Audio element for the click sound -->
+    <!-- Audio element for the click sound -->
+<audio id="clickSound" src="https://www.soundjay.com/button/button-16.mp3"></audio>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" class="container">
+    <h1>Game Over</h1>
+    <p>Your score: <span id="finalScore">0</span></p>
+    <button id="restartButton">Restart Game</button>
+  </div>
 
   <script>
-    // Initialize the score variable to keep track of clicks
+    // -----------------------
+    // Game State Variables
+    // -----------------------
     let score = 0;
-    
-    // Get references to the image, score display, and game area container
+    let timeLeft = 30; // 30-second game timer
+    let timerInterval;
+    let gameStarted = false;
+
+    // -----------------------
+    // Image URLs for Cat and Dog
+    // -----------------------
+    const catImageURL = "https://loremflickr.com/300/300/cat";
+    const dogImageURL = "https://loremflickr.com/300/300/dog";
+
+    // -----------------------
+    // DOM Element References
+    // -----------------------
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const gameArea = document.getElementById('gameArea');
     const animal = document.getElementById('animal');
     const scoreDisplay = document.getElementById('score');
-    const gameArea = document.getElementById('gameArea');
+    const timerDisplay = document.getElementById('timer');
+    const highScoreDisplay = document.getElementById('highScore');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const restartButton = document.getElementById('restartButton');
+    const clickSound = document.getElementById('clickSound');
 
-    // Function to move the image to a random position within the game area
-    function moveAnimal() {
-      // Calculate the maximum allowed left and top positions
-      const maxLeft = gameArea.clientWidth - animal.offsetWidth;
-      const maxTop = gameArea.clientHeight - animal.offsetHeight;
-      
-      // Generate random positions within the allowed range
-      const randomLeft = Math.random() * maxLeft;
-      const randomTop = Math.random() * maxTop;
-      
-      // Set the new positions
-      animal.style.left = randomLeft + 'px';
-      animal.style.top = randomTop + 'px';
+    // -----------------------
+    // High Score: Load from localStorage
+    // -----------------------
+    let highScore = localStorage.getItem('highScore') || 0;
+    highScoreDisplay.textContent = highScore;
+
+    // -----------------------
+    // Function: Center the Animal in the Game Area
+    // -----------------------
+    function centerAnimal() {
+      const centerLeft = (gameArea.clientWidth - animal.offsetWidth) / 2;
+      const centerTop = (gameArea.clientHeight - animal.offsetHeight) / 2;
+      animal.style.left = centerLeft + "px";
+      animal.style.top = centerTop + "px";
+      // Fade in the animal image
+      animal.classList.add('show');
     }
 
-    // Add a click event listener to the image
+    // -----------------------
+    // Function: Move Animal to a Random Position
+    // -----------------------
+    function moveAnimal() {
+      // Calculate the maximum left and top positions so the animal remains fully visible
+      const maxLeft = gameArea.clientWidth - animal.offsetWidth;
+      const maxTop = gameArea.clientHeight - animal.offsetHeight;
+      const randomLeft = Math.random() * maxLeft;
+      const randomTop = Math.random() * maxTop;
+      animal.style.left = randomLeft + "px";
+      animal.style.top = randomTop + "px";
+      // Remove and then re-add the fade-in class for a smooth effect
+      animal.classList.remove('show');
+      setTimeout(() => {
+        animal.classList.add('show');
+      }, 50);
+    }
+
+    // -----------------------
+    // Function: Start the Timer
+    // -----------------------
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        if(timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // -----------------------
+    // Function: End the Game
+    // -----------------------
+    function endGame() {
+      clearInterval(timerInterval);
+      gameStarted = false;
+      // Hide the game area and show the Game Over screen
+      gameArea.style.display = 'none';
+      gameOverScreen.style.display = 'flex';
+      finalScoreDisplay.textContent = score;
+      // Update high score if needed
+      if(score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+        highScoreDisplay.textContent = highScore;
+      }
+    }
+
+    // -----------------------
+    // Event Listener: Animal Click
+    // -----------------------
     animal.addEventListener('click', () => {
-      // Increment the score and update the display
+      if (!gameStarted) return; // Ignore clicks if game hasn't started
+      // Play click sound (ensure you have a valid audio file)
+      if(clickSound) {
+        clickSound.currentTime = 0;
+        clickSound.play();
+      }
+      // Increase score and update display
       score++;
       scoreDisplay.textContent = score;
-      
-      // Toggle the image source:
-      // - For odd-numbered clicks, change the image to a dog.
-      // - For even-numbered clicks, revert back to a cat.
-      if (score % 2 === 1) {
-        animal.src = "https://placedog.net/600/600";  // Dog image URL
+      // Toggle image source based on odd/even score
+      if(score % 2 === 1) {
+        animal.src = dogImageURL;
         animal.alt = "Cute Dog";
       } else {
-        animal.src = "https://placekitten.com/600/600"; // Cat image URL
+        animal.src = catImageURL;
         animal.alt = "Cute Cat";
       }
-      
-      // Move the image to a new random location
+      // Move the animal to a new random position
       moveAnimal();
     });
 
-    // Optionally, move the animal to a random position when the page loads
-    moveAnimal();
+    // -----------------------
+    // Event Listener: Start Button
+    // -----------------------
+    startButton.addEventListener('click', () => {
+      // Hide the start screen and game over screen (if visible)
+      startScreen.style.display = 'none';
+      gameOverScreen.style.display = 'none';
+      // Show the game area
+      gameArea.style.display = 'block';
+      // Reset game state
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = score;
+      timerDisplay.textContent = timeLeft;
+      gameStarted = true;
+      // Center the animal at the start and begin the timer
+      centerAnimal();
+      startTimer();
+    });
+
+    // -----------------------
+    // Event Listener: Restart Button
+    // -----------------------
+    restartButton.addEventListener('click', () => {
+      // Reset game state and start again
+      gameOverScreen.style.display = 'none';
+      gameArea.style.display = 'block';
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = score;
+      timerDisplay.textContent = timeLeft;
+      gameStarted = true;
+      centerAnimal();
+      startTimer();
+    });
   </script>
 </body>
 </html>
