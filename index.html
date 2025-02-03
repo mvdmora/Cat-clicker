@@ -13,12 +13,12 @@
       text-align: center;
     }
 
-    /* Container for common centering and padding */
+    /* Container styling for consistent padding */
     .container {
       padding: 20px;
     }
 
-    /* Start screen and Game Over screen styling */
+    /* Start Screen and Game Over Screen styling */
     #startScreen, #gameOverScreen {
       display: flex;
       flex-direction: column;
@@ -27,40 +27,40 @@
       height: 100vh;
     }
 
-    /* Game area styling */
+    /* Scoreboard styling: placed outside of the game area */
+    #scoreBoard {
+      font-size: 1.5em;
+      margin: 10px auto;
+      display: none; /* Hidden until the game starts */
+    }
+
+    /* Game Area styling: area where the animal moves */
     #gameArea {
       position: relative;
       width: 100%;
-      height: 350px; /* Adjust height to accommodate the image size */
+      height: 350px; /* Adjust height as needed */
       border: 1px solid #ccc;
       margin: 20px auto;
       background: #fff;
       overflow: hidden;
-      display: none; /* Hidden until game starts */
+      display: none; /* Hidden until the game starts */
     }
 
-    /* Styling for the animal image (cat/dog) */
+    /* Animal image styling */
     #animal {
-      position: absolute;    /* Allows moving it around within gameArea */
-      width: 150px;          /* Smaller image size */
-      height: auto;          /* Maintain aspect ratio */
-      cursor: pointer;       /* Indicates clickable */
+      position: absolute;
+      width: 150px;       /* Adjusted for a smaller image */
+      height: auto;
+      cursor: pointer;
       border: 3px solid #ccc;
       border-radius: 10px;
-      /* Transition for a fade effect when moving */
       transition: transform 0.1s, opacity 0.3s;
-      opacity: 0;            /* Initially hidden for fade-in effect */
+      opacity: 0;       /* For fade-in effect */
     }
 
-    /* Class added to fade in the image */
+    /* Class to fade in the image */
     #animal.show {
       opacity: 1;
-    }
-
-    /* Score, Timer, and High Score display styling */
-    #scoreBoard {
-      margin: 10px;
-      font-size: 1.5em;
     }
 
     /* Button styling */
@@ -75,6 +75,7 @@
       color: #fff;
       transition: background 0.2s;
     }
+
     button:hover {
       background: #0056b3;
     }
@@ -88,21 +89,21 @@
     <button id="startButton">Start Game</button>
   </div>
 
+  <!-- Scoreboard (outside the game area) -->
+  <div id="scoreBoard" class="container">
+    <span>Score: <span id="score">0</span></span>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span>Time: <span id="timer">30</span>s</span>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span>High Score: <span id="highScore">0</span></span>
+  </div>
+
   <!-- Game Area -->
   <div id="gameArea" class="container">
-    <!-- Score, Timer, and High Score display -->
-    <div id="scoreBoard">
-      <span>Score: <span id="score">0</span></span>
-      &nbsp;&nbsp;|&nbsp;&nbsp;
-      <span>Time: <span id="timer">30</span>s</span>
-      &nbsp;&nbsp;|&nbsp;&nbsp;
-      <span>High Score: <span id="highScore">0</span></span>
-    </div>
     <!-- The animal image that toggles between cat and dog -->
-    <img id="animal" src="https://loremflickr.com/300/300/cat" alt="Cute Cat">
+    <img id="animal" src="https://placekitten.com/300/300?rand=initial" alt="Cute Cat">
     <!-- Audio element for the click sound -->
-    <!-- Audio element for the click sound -->
-<audio id="clickSound" src="https://www.soundjay.com/button/button-16.mp3"></audio>
+    <audio id="clickSound" src="https://www.soundjay.com/button/button-16.mp3"></audio>
   </div>
 
   <!-- Game Over Screen -->
@@ -122,16 +123,17 @@
     let gameStarted = false;
 
     // -----------------------
-    // Image URLs for Cat and Dog
+    // Image URLs for Cat and Dog (using PlaceKitten and PlaceDog)
     // -----------------------
-    const catImageURL = "https://loremflickr.com/300/300/cat";
-    const dogImageURL = "https://loremflickr.com/300/300/dog";
+    const catImageURL = "https://placekitten.com/300/300";
+    const dogImageURL = "https://placedog.net/300/300";
 
     // -----------------------
     // DOM Element References
     // -----------------------
     const startScreen = document.getElementById('startScreen');
     const startButton = document.getElementById('startButton');
+    const scoreBoard = document.getElementById('scoreBoard');
     const gameArea = document.getElementById('gameArea');
     const animal = document.getElementById('animal');
     const scoreDisplay = document.getElementById('score');
@@ -161,17 +163,16 @@
     }
 
     // -----------------------
-    // Function: Move Animal to a Random Position
+    // Function: Move Animal to a Random Position within the Game Area
     // -----------------------
     function moveAnimal() {
-      // Calculate the maximum left and top positions so the animal remains fully visible
       const maxLeft = gameArea.clientWidth - animal.offsetWidth;
       const maxTop = gameArea.clientHeight - animal.offsetHeight;
       const randomLeft = Math.random() * maxLeft;
       const randomTop = Math.random() * maxTop;
       animal.style.left = randomLeft + "px";
       animal.style.top = randomTop + "px";
-      // Remove and then re-add the fade-in class for a smooth effect
+      // Remove and re-add the fade-in class for a smooth effect
       animal.classList.remove('show');
       setTimeout(() => {
         animal.classList.add('show');
@@ -197,8 +198,8 @@
     function endGame() {
       clearInterval(timerInterval);
       gameStarted = false;
-      // Hide the game area and show the Game Over screen
       gameArea.style.display = 'none';
+      scoreBoard.style.display = 'none';
       gameOverScreen.style.display = 'flex';
       finalScoreDisplay.textContent = score;
       // Update high score if needed
@@ -214,7 +215,7 @@
     // -----------------------
     animal.addEventListener('click', () => {
       if (!gameStarted) return; // Ignore clicks if game hasn't started
-      // Play click sound (ensure you have a valid audio file)
+      // Play click sound (ensure the audio file loads correctly)
       if(clickSound) {
         clickSound.currentTime = 0;
         clickSound.play();
@@ -222,12 +223,12 @@
       // Increase score and update display
       score++;
       scoreDisplay.textContent = score;
-      // Toggle image source based on odd/even score
+      // Toggle image source based on odd/even score, with a random query parameter to avoid caching
       if(score % 2 === 1) {
-        animal.src = dogImageURL;
+        animal.src = dogImageURL + "?rand=" + Math.random();
         animal.alt = "Cute Dog";
       } else {
-        animal.src = catImageURL;
+        animal.src = catImageURL + "?rand=" + Math.random();
         animal.alt = "Cute Cat";
       }
       // Move the animal to a new random position
@@ -238,11 +239,11 @@
     // Event Listener: Start Button
     // -----------------------
     startButton.addEventListener('click', () => {
-      // Hide the start screen and game over screen (if visible)
+      // Hide the start and game over screens; show the game area and scoreboard
       startScreen.style.display = 'none';
       gameOverScreen.style.display = 'none';
-      // Show the game area
       gameArea.style.display = 'block';
+      scoreBoard.style.display = 'block';
       // Reset game state
       score = 0;
       timeLeft = 30;
@@ -258,9 +259,9 @@
     // Event Listener: Restart Button
     // -----------------------
     restartButton.addEventListener('click', () => {
-      // Reset game state and start again
       gameOverScreen.style.display = 'none';
       gameArea.style.display = 'block';
+      scoreBoard.style.display = 'block';
       score = 0;
       timeLeft = 30;
       scoreDisplay.textContent = score;
