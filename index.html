@@ -4,30 +4,49 @@
   <meta charset="UTF-8">
   <title>Cat Clicker Game</title>
   <style>
+    /* Basic styling for the page */
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       font-family: sans-serif;
       background: #f0f0f0;
       margin: 0;
       padding: 20px;
+      text-align: center; /* Center headings and text */
     }
+
+    /* Style for the main heading */
     h1 {
       margin: 20px;
     }
+
+    /* The game area container where the cat will move.
+       This container is positioned relatively so that child elements
+       with absolute positioning (the cat) are positioned relative to it. */
+    #gameArea {
+      position: relative;
+      width: 100%;
+      height: 500px;         /* Adjust the height as needed */
+      border: 1px solid #ccc;/* Optional border so you can see the game area */
+      margin-bottom: 20px;
+      overflow: hidden;      /* Hide any parts of the cat that might go outside */
+    }
+
+    /* Styling for the cat image */
     #cat {
-      width: 300px;
-      height: auto;
-      cursor: pointer;
+      position: absolute;    /* Allow absolute positioning within #gameArea */
+      width: 300px;          /* Fixed width for the cat image */
+      height: auto;          /* Auto-adjust height to preserve aspect ratio */
+      cursor: pointer;       /* Change cursor to indicate the image is clickable */
       border: 5px solid #ccc;
       border-radius: 10px;
-      margin-bottom: 20px;
-      transition: transform 0.1s;
+      transition: transform 0.1s; /* Smooth transition for click animation */
     }
+
+    /* Slight scaling effect when the cat is clicked */
     #cat:active {
       transform: scale(0.95);
     }
+
+    /* Style for the score display */
     #score {
       font-size: 2em;
     }
@@ -35,20 +54,53 @@
 </head>
 <body>
   <h1>Cat Clicker Game</h1>
-  <p>Click the cat to earn points!</p>
-  <!-- Using a placeholder kitten image from placekitten.com -->
-  <img id="cat" src="https://placekitten.com/300/300" alt="Cute Cat">
+  <p>Click the cat to earn points and watch it move!</p>
+  
+  <!-- The container for the cat image -->
+  <div id="gameArea">
+    <!-- The cat image that players click -->
+    <img id="cat" src="https://placekitten.com/300/300" alt="Cute Cat">
+  </div>
+  
+  <!-- The element displaying the current score -->
   <div id="score">0</div>
 
   <script>
+    // Initialize the score variable to keep track of clicks
     let score = 0;
+    
+    // Get references to the cat image, score display, and game area container
     const cat = document.getElementById('cat');
     const scoreDisplay = document.getElementById('score');
+    const gameArea = document.getElementById('gameArea');
 
+    // Function to move the cat to a random position within the game area
+    function moveCat() {
+      // Calculate the maximum left and top positions so the cat stays fully visible
+      const maxLeft = gameArea.clientWidth - cat.offsetWidth;
+      const maxTop = gameArea.clientHeight - cat.offsetHeight;
+
+      // Generate random left and top values within the allowed range
+      const randomLeft = Math.random() * maxLeft;
+      const randomTop = Math.random() * maxTop;
+
+      // Apply the new positions to the cat image
+      cat.style.left = randomLeft + 'px';
+      cat.style.top = randomTop + 'px';
+    }
+
+    // Add a click event listener to the cat image
     cat.addEventListener('click', () => {
+      // Increment the score
       score++;
+      // Update the score display
       scoreDisplay.textContent = score;
+      // Move the cat image to a new random location
+      moveCat();
     });
+
+    // Optionally, move the cat to a random position when the page first loads
+    moveCat();
   </script>
 </body>
 </html>
